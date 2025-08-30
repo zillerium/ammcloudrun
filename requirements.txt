@@ -1,4 +1,6 @@
 flask
-requests
+boto3
 matplotlib
 numpy
+python-dotenv
+

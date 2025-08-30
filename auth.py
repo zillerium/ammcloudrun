@@ -8,5 +8,5 @@ def require_api_key():
         return None
     key = request.headers.get("x-api-key")
     if key != API_KEY:
-        return jsonify({"error": "unauthorized"}), 401
+        return jsonify({"error": "unauthorized 11"}), 401
 
