@@ -175,17 +175,16 @@ class CurveStableSwap2Pool:
         if spot_price > 0:
             return abs(1 - average_price / spot_price) * 100
         return 0
-
-def plot_invariant_curve(out_file="/tmp/stableswap2.png"):
+def plot_invariant_curve(out_file="/tmp/stableswap2.png", A1=10, A2=100, A3=1000):
     """
     Visualize the actual StableSwap curve vs other AMM curves
     """
     # Initialize pools with same liquidity
     total_liquidity = 2_000_000
-    curve_a100 = CurveStableSwap2Pool(1_000_000, 1_000_000, A=100)
-    curve_a10 = CurveStableSwap2Pool(1_000_000, 1_000_000, A=10)
-    curve_a1000 = CurveStableSwap2Pool(1_000_000, 1_000_000, A=1000)
-    
+    curve_a100 = CurveStableSwap2Pool(1_000_000, 1_000_000, A=A2)   # A2
+    curve_a10 = CurveStableSwap2Pool(1_000_000, 1_000_000, A=A1)    # A1
+    curve_a1000 = CurveStableSwap2Pool(1_000_000, 1_000_000, A=A3)  # A3
+
     # Generate x values
     x_values = np.linspace(100_000, 1_900_000, 1000)
     
@@ -220,10 +219,10 @@ def plot_invariant_curve(out_file="/tmp/stableswap2.png"):
     
     # Plot the curves
     plt.figure(figsize=(12, 8))
-    
-    plt.plot(x_values/1000, np.array(curve_y_a10)/1000, 'b--', label='Curve A=10', linewidth=2)
-    plt.plot(x_values/1000, np.array(curve_y_a100)/1000, 'b-', label='Curve A=100', linewidth=2)
-    plt.plot(x_values/1000, np.array(curve_y_a1000)/1000, 'g-', label='Curve A=1000', linewidth=2)
+   
+    plt.plot(x_values/1000, np.array(curve_y_a10)/1000, 'b--', label=f'Curve A={A1}', linewidth=2)
+    plt.plot(x_values/1000, np.array(curve_y_a100)/1000, 'b-', label=f'Curve A={A2}', linewidth=2)
+    plt.plot(x_values/1000, np.array(curve_y_a1000)/1000, 'g-', label=f'Curve A={A3}', linewidth=2)
     plt.plot(x_values/1000, np.array(constant_product_y)/1000, 'r--', label='Constant Product (Uniswap)', linewidth=2)
     
     # Add balance point
@@ -305,13 +304,17 @@ def store_stableswap():
     filename = request.args.get("filename", "stableswap23.png")
     local_file = f"/tmp/{filename}"
 
-    print(f"🟢 Generating StableSwap curve: {local_file}")
-    plot_invariant_curve(local_file)   # saves directly to /tmp
+    # NEW: read A values from query params
+    A1 = int(request.args.get("A1", 10))
+    A2 = int(request.args.get("A2", 100))
+    A3 = int(request.args.get("A3", 1000))
+
+    print(f"🟢 Generating StableSwap curve: {local_file} with A1={A1}, A2={A2}, A3={A3}")
+    plot_invariant_curve(local_file, A1, A2, A3)
 
     print(f"🟢 Uploading {local_file} to S3 as {filename}")
     result = upload_file(local_file, filename)
     return jsonify(result)
-
 
 
 if __name__ == "__main__":
