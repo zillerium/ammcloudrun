@@ -176,7 +176,7 @@ class CurveStableSwap2Pool:
             return abs(1 - average_price / spot_price) * 100
         return 0
 
-def plot_invariant_curve():
+def plot_invariant_curve(out_file="/tmp/stableswap2.png"):
     """
     Visualize the actual StableSwap curve vs other AMM curves
     """
