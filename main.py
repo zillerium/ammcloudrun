@@ -175,7 +175,9 @@ class CurveStableSwap2Pool:
         if spot_price > 0:
             return abs(1 - average_price / spot_price) * 100
         return 0
-def plot_invariant_curve(out_file="/tmp/stableswap2.png", A1=10, A2=100, A3=1000):
+
+def plot_invariant_curve(out_file="/tmp/stableswap2.png", A1=10, A2=100, A3=1000, scaling=1000):
+
     """
     Visualize the actual StableSwap curve vs other AMM curves
     """
@@ -219,25 +221,28 @@ def plot_invariant_curve(out_file="/tmp/stableswap2.png", A1=10, A2=100, A3=1000
     
     # Plot the curves
     plt.figure(figsize=(12, 8))
-   
-    plt.plot(x_values/1000, np.array(curve_y_a10)/1000, 'b--', label=f'Curve A={A1}', linewidth=2)
-    plt.plot(x_values/1000, np.array(curve_y_a100)/1000, 'b-', label=f'Curve A={A2}', linewidth=2)
-    plt.plot(x_values/1000, np.array(curve_y_a1000)/1000, 'g-', label=f'Curve A={A3}', linewidth=2)
-    plt.plot(x_values/1000, np.array(constant_product_y)/1000, 'r--', label='Constant Product (Uniswap)', linewidth=2)
+  
+    plt.plot(x_values/scaling, np.array(curve_y_a10)/scaling, 'b--', label=f'Curve A={A1}', linewidth=2)
+    plt.plot(x_values/scaling, np.array(curve_y_a100)/scaling, 'b-', label=f'Curve A={A2}', linewidth=2)
+    plt.plot(x_values/scaling, np.array(curve_y_a1000)/scaling, 'g-', label=f'Curve A={A3}', linewidth=2)
+    plt.plot(x_values/scaling, np.array(constant_product_y)/scaling, 'r--', label='Constant Product (Uniswap)', linewidth=2)
+    
+    plt.plot(1_000_000/scaling, 1_000_000/scaling, 'ro', markersize=8, label='Balanced Point')
+
     
     # Add balance point
-    plt.plot(1000, 1000, 'ro', markersize=8, label='Balanced Point')
-    
-    plt.xlabel('Token X Balance (thousands)')
-    plt.ylabel('Token Y Balance (thousands)')
+    plt.xlabel(f'Token X Balance (÷{scaling})')
+    plt.ylabel(f'Token Y Balance (÷{scaling})')
+
     plt.title('AMM Invariant Curves Comparison')
     plt.legend()
     plt.grid(True, alpha=0.3)
-    plt.xlim(100, 1900)
-    plt.ylim(100, 1900)
-    
+   
+    plt.xlim(100, total_liquidity/scaling - 100)
+    plt.ylim(100, total_liquidity/scaling - 100)
+    diag_x = np.linspace(100, total_liquidity/scaling - 100, 100)
+
     # Add diagonal line for reference
-    diag_x = np.linspace(100, 1900, 100)
     plt.plot(diag_x, diag_x, 'k:', alpha=0.5, label='x = y line')
     
     plt.tight_layout()
@@ -308,9 +313,11 @@ def store_stableswap():
     A1 = int(request.args.get("A1", 10))
     A2 = int(request.args.get("A2", 100))
     A3 = int(request.args.get("A3", 1000))
+    scaling = int(request.args.get("scaling", 1000))
 
-    print(f"🟢 Generating StableSwap curve: {local_file} with A1={A1}, A2={A2}, A3={A3}")
-    plot_invariant_curve(local_file, A1, A2, A3)
+    print(f"🟢 Generating StableSwap curve: {local_file} with A1={A1}, A2={A2}, A3={A3}, scaling={scaling}")
+    plot_invariant_curve(local_file, A1, A2, A3, scaling)
+
 
     print(f"🟢 Uploading {local_file} to S3 as {filename}")
     result = upload_file(local_file, filename)
