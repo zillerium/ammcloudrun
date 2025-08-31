@@ -302,17 +302,16 @@ app = Flask(__name__)
 
 @app.route("/store_stableswap", methods=["POST"])
 def store_stableswap():
-    # allow ?filename= in query
     filename = request.args.get("filename", "stableswap23.png")
     local_file = f"/tmp/{filename}"
 
     print(f"🟢 Generating StableSwap curve: {local_file}")
-    plot_invariant_curve()          # calls your tested plotting function
-    os.rename("stableswap2.png", local_file)  # move to /tmp for Cloud Run
+    plot_invariant_curve(local_file)   # saves directly to /tmp
 
     print(f"🟢 Uploading {local_file} to S3 as {filename}")
     result = upload_file(local_file, filename)
     return jsonify(result)
+
 
 
 if __name__ == "__main__":
