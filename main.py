@@ -242,7 +242,7 @@ def plot_invariant_curve(out_file="/tmp/stableswap2.png"):
     plt.plot(diag_x, diag_x, 'k:', alpha=0.5, label='x = y line')
     
     plt.tight_layout()
-    plt.savefig("stableswap2.png")
+    plt.savefig(out_file)
 
 def demonstrate_curve_behavior():
     """
