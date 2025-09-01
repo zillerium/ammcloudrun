@@ -176,28 +176,30 @@ class CurveStableSwap2Pool:
             return abs(1 - average_price / spot_price) * 100
         return 0
 
-def plot_invariant_curve(out_file="/tmp/stableswap2.png", A1=10, A2=100, A3=1000, scaling=1000):
+def plot_invariant_curve(out_file="/tmp/stableswap2.png", A1=10, A2=100, A3=1000, scaling=1000, liquidity=2_000_000):
 
     """
     Visualize the actual StableSwap curve vs other AMM curves
     """
     # Initialize pools with same liquidity
-    total_liquidity = 2_000_000
-    curve_a100 = CurveStableSwap2Pool(1_000_000, 1_000_000, A=A2)   # A2
-    curve_a10 = CurveStableSwap2Pool(1_000_000, 1_000_000, A=A1)    # A1
-    curve_a1000 = CurveStableSwap2Pool(1_000_000, 1_000_000, A=A3)  # A3
+    total_liquidity = liquidity
+    curve_a100 = CurveStableSwap2Pool(liquidity // 2, liquidity // 2, A=A1)
+    curve_a10 = CurveStableSwap2Pool(liquidity // 2, liquidity // 2, A=A2)
+    curve_a1000 = CurveStableSwap2Pool(liquidity // 2, liquidity // 2, A=A3)
 
     # Generate x values
-    x_values = np.linspace(100_000, 1_900_000, 1000)
-    
+    factor = int(liquidity / 20)
+    x_values = np.linspace(factor, liquidity - factor, 1000)
+
     curve_y_a100 = []
     curve_y_a10 = []
     curve_y_a1000 = []
     constant_product_y = []
     
     # Calculate corresponding y values for each x
-    k = 1_000_000 * 1_000_000  # Constant product k
-    
+    k = (liquidity // 2) * (liquidity // 2)
+
+
     for x in x_values:
         try:
             # Curve with different A values
@@ -422,9 +424,11 @@ def store_stableswap():
     A2 = int(request.args.get("A2", 100))
     A3 = int(request.args.get("A3", 1000))
     scaling = int(request.args.get("scaling", 1000))
+    liquidity = int(request.args.get("liquidity", 2_000_000))
+
 
     print(f"🟢 Generating StableSwap curve: {local_file} with A1={A1}, A2={A2}, A3={A3}, scaling={scaling}")
-    plot_invariant_curve(local_file, A1, A2, A3, scaling)
+    plot_invariant_curve(local_file, A1, A2, A3, scaling, liquidity)
 
     print(f"🟢 Uploading {local_file} to S3 as {filename}")
     result = upload_file(local_file, filename)
