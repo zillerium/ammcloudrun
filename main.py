@@ -238,6 +238,9 @@ def plot_invariant_curve(out_file="/tmp/stableswap2.png", A1=10, A2=100, A3=1000
     plt.legend()
     plt.grid(True, alpha=0.3)
    
+    #plt.xlim(100, 3000)
+    #plt.ylim(100, 3000)
+    
     plt.xlim(100, total_liquidity/scaling - 100)
     plt.ylim(100, total_liquidity/scaling - 100)
     diag_x = np.linspace(100, total_liquidity/scaling - 100, 100)
@@ -247,6 +250,111 @@ def plot_invariant_curve(out_file="/tmp/stableswap2.png", A1=10, A2=100, A3=1000
     
     plt.tight_layout()
     plt.savefig(out_file)
+
+    # --- New: slippage calc for A2 ---
+    delta_x = x_values[1] - x_values[0]
+
+    slippages = []
+    for i in range(len(x_values) - 1):
+        dx = x_values[i+1] - x_values[i]
+        dy_actual = curve_y_a100[i+1] - curve_y_a100[i]
+        spot_price = curve_y_a100[i] / x_values[i]   # ≈1 at balance
+        expected_delta_y = dx * spot_price
+        slippages.append((dy_actual - expected_delta_y) / scaling)  # scale here
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(x_values[:-1]/scaling, slippages, 'm-', label=f'Slippage A={A2}')
+    plt.xlabel(f'Token X Balance (÷{scaling})')
+    plt.ylabel('Slippage (Δy - Δx)')
+    plt.title(f'Slippage Curve for A={A2}, Δx={int(delta_x)}')
+
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_file.replace(".png", "") + "-A2.png")
+    slippages_A2 = slippages   # ✅ store for later
+
+    # --- Slippage calc for A1 ---
+    delta_x = x_values[1] - x_values[0]
+    slippages = []
+    for i in range(len(x_values) - 1):
+        dx = x_values[i+1] - x_values[i]
+        dy_actual = curve_y_a10[i+1] - curve_y_a10[i]
+        spot_price = curve_y_a10[i] / x_values[i]
+        expected_delta_y = dx * spot_price
+        slippages.append((dy_actual - expected_delta_y) / scaling)
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(x_values[:-1]/scaling, slippages, 'c-', label=f'Slippage A={A1}')
+    plt.xlabel(f'Token X Balance (÷{scaling})')
+    plt.ylabel('Slippage (Δy - Δx)')
+    plt.title(f'Slippage Curve for A={A1}, Δx={int(delta_x)}')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_file.replace(".png", "") + "-A1.png")
+    slippages_A1 = slippages   # ✅ store for later
+
+    # --- Slippage calc for A2 (already working) ---
+    # [your existing A2 block here]
+
+    # --- Slippage calc for A3 ---
+    slippages = []
+    for i in range(len(x_values) - 1):
+        dx = x_values[i+1] - x_values[i]
+        dy_actual = curve_y_a1000[i+1] - curve_y_a1000[i]
+        spot_price = curve_y_a1000[i] / x_values[i]
+        expected_delta_y = dx * spot_price
+        slippages.append((dy_actual - expected_delta_y) / scaling)
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(x_values[:-1]/scaling, slippages, 'g-', label=f'Slippage A={A3}')
+    plt.xlabel(f'Token X Balance (÷{scaling})')
+    plt.ylabel('Slippage (Δy - Δx)')
+    plt.title(f'Slippage Curve for A={A3}, Δx={int(delta_x)}')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_file.replace(".png", "") + "-A3.png")
+    slippages_A3 = slippages   # ✅ store for later
+
+    # --- Slippage calc for CPMM ---
+    slippages = []
+    for i in range(len(x_values) - 1):
+        dx = x_values[i+1] - x_values[i]
+        dy_actual = constant_product_y[i+1] - constant_product_y[i]
+        spot_price = constant_product_y[i] / x_values[i]
+        expected_delta_y = dx * spot_price
+        slippages.append((dy_actual - expected_delta_y) / scaling)
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(x_values[:-1]/scaling, slippages, 'r-', label='Slippage CPMM')
+    plt.xlabel(f'Token X Balance (÷{scaling})')
+    plt.ylabel('Slippage (Δy - Δx)')
+    plt.title(f'Slippage Curve for CPMM, Δx={int(delta_x)}')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_file.replace(".png", "") + "-CPMM.png")
+    slippages_CPMM = slippages   # ✅ store for later
+
+    # --- Superimposed slippage plot (ALL) ---
+    plt.figure(figsize=(12, 6))
+    plt.plot(x_values[:-1]/scaling, slippages_A1, 'b--', label=f'Slippage A={A1}')
+    plt.plot(x_values[:-1]/scaling, slippages_A2, 'm-',  label=f'Slippage A={A2}')
+    plt.plot(x_values[:-1]/scaling, slippages_A3, 'g-',  label=f'Slippage A={A3}')
+    plt.plot(x_values[:-1]/scaling, slippages_CPMM, 'r--', label='Slippage CPMM')
+
+    plt.xlabel(f'Token X Balance (÷{scaling})')
+    plt.ylabel(f'Slippage (Δy - Δx) ÷{scaling}')
+    plt.title(f'Slippage Comparison, Δx={int(delta_x)}')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_file.replace(".png", "") + "-ALL.png")
+
+
+
 
 def demonstrate_curve_behavior():
     """
@@ -318,10 +426,56 @@ def store_stableswap():
     print(f"🟢 Generating StableSwap curve: {local_file} with A1={A1}, A2={A2}, A3={A3}, scaling={scaling}")
     plot_invariant_curve(local_file, A1, A2, A3, scaling)
 
+    print(f"🟢 Uploading {local_file} to S3 as {filename}")
+    result = upload_file(local_file, filename)
+
+    slippage_file = local_file.replace(".png", "") + "-A2.png"
+    slippage_name = filename.replace(".png", "") + "-A2.png"
+    print(f"🟢 Uploading {slippage_file} to S3 as {slippage_name}")
+    result_slip = upload_file(slippage_file, slippage_name)
 
     print(f"🟢 Uploading {local_file} to S3 as {filename}")
     result = upload_file(local_file, filename)
-    return jsonify(result)
+
+    # --- Upload slippage A1 ---
+    slippage_file_A1 = local_file.replace(".png", "") + "-A1.png"
+    slippage_name_A1 = filename.replace(".png", "") + "-A1.png"
+    print(f"🟢 Uploading {slippage_file_A1} to S3 as {slippage_name_A1}")
+    result_slip_A1 = upload_file(slippage_file_A1, slippage_name_A1)
+
+    # --- Upload slippage A2 ---
+    slippage_file_A2 = local_file.replace(".png", "") + "-A2.png"
+    slippage_name_A2 = filename.replace(".png", "") + "-A2.png"
+    print(f"🟢 Uploading {slippage_file_A2} to S3 as {slippage_name_A2}")
+    result_slip_A2 = upload_file(slippage_file_A2, slippage_name_A2)
+
+    # --- Upload slippage A3 ---
+    slippage_file_A3 = local_file.replace(".png", "") + "-A3.png"
+    slippage_name_A3 = filename.replace(".png", "") + "-A3.png"
+    print(f"🟢 Uploading {slippage_file_A3} to S3 as {slippage_name_A3}")
+    result_slip_A3 = upload_file(slippage_file_A3, slippage_name_A3)
+
+    # --- Upload slippage CPMM ---
+    slippage_file_CPMM = local_file.replace(".png", "") + "-CPMM.png"
+    slippage_name_CPMM = filename.replace(".png", "") + "-CPMM.png"
+    print(f"🟢 Uploading {slippage_file_CPMM} to S3 as {slippage_name_CPMM}")
+    result_slip_CPMM = upload_file(slippage_file_CPMM, slippage_name_CPMM)
+
+    # --- Upload slippage ALL ---
+    slippage_file_ALL = local_file.replace(".png", "") + "-ALL.png"
+    slippage_name_ALL = filename.replace(".png", "") + "-ALL.png"
+    print(f"🟢 Uploading {slippage_file_ALL} to S3 as {slippage_name_ALL}")
+    result_slip_ALL = upload_file(slippage_file_ALL, slippage_name_ALL)
+
+    return jsonify({
+        "main": result,
+        "slippage_A1": result_slip_A1,
+        "slippage_A2": result_slip_A2,
+        "slippage_A3": result_slip_A3,
+        "slippage_CPMM": result_slip_CPMM,
+        "slippage_ALL": result_slip_ALL
+    })
+
 
 
 if __name__ == "__main__":

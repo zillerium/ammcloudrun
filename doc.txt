@@ -3,3 +3,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 python main.py
 
+
+set -a; source .env; set +a
+
