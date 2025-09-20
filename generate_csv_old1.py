@@ -1,7 +1,6 @@
 # generate_csv.py
 from classcode.plotamm import PlotAMM
 from classcode.plotmulti import PlotMultiAMM
-from classcode.calcprice import CalcPrice
 
 def main():
     # --- Single A example ---
@@ -27,19 +26,6 @@ def main():
         plot_remote="stableswap_a1-1000.png",
     )
     multi.generate_plot()
-
-    # --- Price example ---
-    price = CalcPrice(
-        xb=1_000_000,
-        yb=1_000_000,
-        A=100,
-        n=200,
-        csv_file="/tmp/stableswap_price_a100.csv",
-        csv_remote="stableswap_price_a100.csv",
-        plot_file="/tmp/stableswap_price_a100.png",
-        plot_remote="stableswap_price_a100.png",
-    )
-    price.generate_csv_with_price()
 
 if __name__ == "__main__":
     main()
