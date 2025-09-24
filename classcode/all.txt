@@ -1,0 +1,130 @@
+# classcode/plotswaps.py
+import csv
+import matplotlib.pyplot as plt
+from uploader import upload_file
+from classcode.swapdx import SwapDx
+
+class PlotSwaps:
+    """
+    Runs swap tests for a fixed dx across a range of x values.
+    Outputs CSV and a loss-vs-x plot.
+    """
+    def __init__(self, xb=1_000_000, yb=1_000_000, A=100, dx=10_000, n=50,
+                 csv_file="/tmp/swaps.csv", csv_remote="swaps.csv",
+                 plot_file="/tmp/swaps.png", plot_remote="swaps.png"):
+        self.xb = xb
+        self.yb = yb
+        self.A = A
+        self.dx = dx
+        self.n = n
+        self.csv_file = csv_file
+        self.csv_remote = csv_remote
+        self.plot_file = plot_file
+        self.plot_remote = plot_remote
+
+    def generate_csv_and_plot(self):
+        # Initial pool
+        xb, yb = self.xb, self.yb
+        results = []
+
+        # Run n sequential trades of size dx
+        for _ in range(self.n):
+            swap = SwapDx(xb, yb, self.A)
+            row = swap.trade(self.dx)
+            results.append(row)
+
+            # update pool state
+            xb, yb = row["x_new"], row["y_new"]
+
+        # Save CSV
+        with open(self.csv_file, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=results[0].keys())
+            writer.writeheader()
+            writer.writerows(results)
+        print(f"✅ CSV saved locally at {self.csv_file}")
+
+        csv_result = upload_file(self.csv_file, self.csv_remote)
+        print("✅ CSV upload result:", csv_result)
+
+        # Plot loss vs x
+        xs = [r["x_new"] for r in results]
+        losses = [r["loss"] for r in results]
+
+        plt.figure(figsize=(8, 6))
+        plt.plot(xs, losses, label=f"A={self.A}, dx={self.dx}")
+        plt.axhline(0, color="k", linestyle="--")
+        plt.xlabel("Reserve x")
+        plt.ylabel("Trader Loss (dx - dy)")
+        plt.title("StableSwap Loss vs Reserve x")
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.savefig(self.plot_file)
+        print(f"✅ Plot saved locally at {self.plot_file}")
+
+        plot_result = upload_file(self.plot_file, self.plot_remote)
+        print("✅ Plot upload result:", plot_result)
+
+        return {"csv": csv_result, "plot": plot_result}
+
+# classcode/swapdx.py
+from .dstate import DState
+from .ystate import YState
+
+class SwapDx:
+    """
+    Simulates a single swap dx -> dy for StableSwap v1 (n=2).
+    Computes dy and trader loss (dx - dy).
+    """
+    def __init__(self, xb: float, yb: float, A: int):
+        self.pool = DState(xb, yb, A)
+        self.A = A
+
+    def trade(self, dx: float):
+        # Pool state before trade
+        x0, y0, D = self.pool.x, self.pool.y, self.pool.D
+
+        # New x after trade
+        x_new = x0 + dx
+
+        # Solve for new y with invariant D
+        ystate = YState(x0, y0, self.A)
+        y_new = ystate.get_y(x_new, D)
+
+        # Trader output
+        dy = y0 - y_new
+        loss = dx - dy
+
+        return {
+            "x0": x0,
+            "y0": y0,
+            "x_new": x_new,
+            "y_new": y_new,
+            "dx": dx,
+            "dy": dy,
+            "loss": loss,
+            "D": D,
+            "A": self.A,
+        }
+
+# classcode/ystate.py
+from .dstate import DState
+
+class YState(DState):
+    """
+    Computes y given x, based on fixed A and D inherited from DState.
+    """
+    def get_y(self, x_new: float) -> float:
+        Ann = self.A * 4
+        D = self.D
+        c = D**3 / (4 * Ann * x_new)
+        b = x_new + D / Ann
+
+        y_prev = D
+        for _ in range(255):
+            y = y_prev
+            y_prev = (y * y + c) / (2 * y + b - D)
+            if abs(y - y_prev) <= 1:
+                break
+        return y_prev
+

@@ -42,7 +42,7 @@ class CalcPrice(PlotAMM):
 
         # --- Plot price vs. x ---
         plt.figure(figsize=(8, 6))
-        plt.plot(self.x_values, prices, label=f"Price (A={self.A}, D={self.pool.D:.2e})")
+        plt.plot(self.x_values, prices, label=f"Price1 (A={self.A})")
         plt.axhline(1.0, color="k", linestyle="--", label="Balanced price p=1")
         plt.title("StableSwap Price Curve")
         plt.xlabel("x")

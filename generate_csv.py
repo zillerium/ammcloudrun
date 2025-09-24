@@ -12,10 +12,10 @@ def main():
         yb=1_000_000,
         A=1,
         n=200,
-        csv_file="/tmp/stableswap_a1.csv",
-        csv_remote="stableswap_a1.csv",
-        plot_file="/tmp/stableswap_a1.png",
-        plot_remote="stableswap_a1.png",
+        csv_file="/tmp/teststable_a1.csv",
+        csv_remote="teststable_a1.csv",
+        plot_file="/tmp/teststable_a1.png",
+        plot_remote="teststable_a1.png",
     )
     amm.generate_csv_and_plot()
 
@@ -25,8 +25,8 @@ def main():
         yb=1_000_000,
         A_list=[1, 10, 100, 1000],
         n=200,
-        plot_file="/tmp/stableswap_a1-1000.png",
-        plot_remote="stableswap_a1-1000.png",
+        plot_file="/tmp/teststable_a1-1000.png",
+        plot_remote="teststable_a1-1000.png",
     )
     multi.generate_plot()
 
@@ -36,10 +36,10 @@ def main():
         yb=1_000_000,
         A=1,
         n=200,
-        csv_file="/tmp/stableswap_price_a1.csv",
-        csv_remote="stableswap_price_a1.csv",
-        plot_file="/tmp/stableswap_price_a1.png",
-        plot_remote="stableswap_price_a1.png",
+        csv_file="/tmp/teststable_price_a1.csv",
+        csv_remote="teststable_price_a1.csv",
+        plot_file="/tmp/teststable_price_a1.png",
+        plot_remote="teststable_price_a1.png",
     )
     price.generate_csv_with_price()
 
@@ -48,10 +48,10 @@ def main():
         yb=1_000_000,
         A=1,
         n=200,
-        csv_file="/tmp/stableswap_derivative_price_a1.csv",
-        csv_remote="stableswap_derivative_price_a1.csv",
-        plot_file="/tmp/stableswap_derivative_price_a1.png",
-        plot_remote="stableswap_derivative_price_a1.png",
+        csv_file="/tmp/teststable_derivative_price_a1.csv",
+        csv_remote="teststable_derivative_price_a1.csv",
+        plot_file="/tmp/teststable_derivative_price_a1.png",
+        plot_remote="teststable_derivative_price_a1.png",
     )
     derivative.generate_csv_with_derivative_price()
 
@@ -62,8 +62,8 @@ def main():
         yb=1_000_000,
         A_list=[1, 10, 100, 1000],
         n=200,
-        plot_file="/tmp/stableswap_multi_price.png",
-        plot_remote="stableswap_multi_price.png",
+        plot_file="/tmp/teststable_multi_price.png",
+        plot_remote="teststable_multi_price.png",
     )
     multi_price.generate_plot()
 

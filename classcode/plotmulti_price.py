@@ -35,7 +35,9 @@ class PlotMultiPrice:
             rows = price_calc.run_test()
             prices = [price_calc.compute_price(x, y) for (x, y, _) in rows]
 
-            plt.plot(price_calc.x_values, prices, label=f"A={A}")
+            # plt.plot(price_calc.x_values, prices, label=f"A={A}")
+            D = price_calc.pool.D
+            plt.plot(price_calc.x_values, prices, label=f"A={A}, D={D:.2e}")
 
         plt.axhline(1.0, color="k", linestyle="--", label="Balanced price p=1")
         plt.title(f"StableSwap Price Curves for A={min(self.A_list)}–{max(self.A_list)}")
